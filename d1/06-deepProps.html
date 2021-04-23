@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="root">
+        <div>
+            <p>{{name}}--{{message}}</p>
+            <p>{{fullName.firstName}}---{{fullName.lastName}}</p>
+        </div>
+    </div>
+    <script>
+        // 解决一个问题
+        // 使用'xxx.yyy.zzz' 可以访问某个对象
+        // 就是使用字符串路径来访问对象的成员
+        function getValueByPath(obj,path) {
+            let paths = path.split('.')
+            let res = obj
+            let props;
+            while(props = paths.shift()) {
+                res = res[props]
+            }
+            return res
+        }
+       
+        // console.log(getValueByPath({a: {b: {c:2}}},'a.b.c'))
+        let regBrackets = /\{\{(.+?)\}\}/g
+        function complier(template,data) {
+            let childNodes = template.childNodes
+            for(let i = 0;i<childNodes.length;i++) {
+              let type = childNodes[i].nodeType //获取节点类型
+              if(type===3) {
+                  let txt = childNodes[i].nodeValue
+                  txt = txt.replace(regBrackets,(_,g) => {
+                      let path = g.trim()
+                      console.log(path)
+                    //   let value = data[key]
+                    let value = getValueByPath(data,path)
+                    return value
+                  })
+                  childNodes[i].nodeValue = txt
+              }else if(type===1){
+                  complier(childNodes[i],data)
+              }   
+            }
+        }
+        function JGVue(options) {
+            // 习惯：内部的数据使用下划线 开头，只读数据使用 $ 开头
+            this._data = options.data
+            this._el = options.el
+
+            // 准备工作
+            this._templateDOM = document.querySelector(this._el)
+            this._parent = this._templateDOM.parentNode // 获取父节点
+            this.render()
+        }
+        JGVue.prototype.render = function () {
+            this.complier()
+        }
+        /* 编译 将 模板与数据结合 得到 真正的DOM 元素*/ 
+        JGVue.prototype.complier = function () {
+            let realHTMLDOM = this._templateDOM.cloneNode(true) //防止原模板丢失 true深度克隆
+            complier(realHTMLDOM,this._data) // 将克隆后的模板编译
+            this.update(realHTMLDOM) // 编译后的DOM更新到页面中
+        }
+        /* 将 DOM 的元素 放到页面中  */
+        JGVue.prototype.update = function (real) {
+            // 替换root的父节点中的子节点
+            this._parent.replaceChild(real,document.querySelector('#root'))
+        }
+      let app = new JGVue({
+          el: '#root',
+          data: {
+              name: '张三',
+              message: '你好',
+              fullName: {
+                  firstName: '第',
+                  lastName: '二'
+              }
+          }
+      })
+      console.log(app)
+    </script>
+</body>
+</html>

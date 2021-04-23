@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="root">
+        <div>
+            <p>{{name}}--{{message}}</p>
+        </div>
+    </div>
+    <script>
+        // 这个函数是在Vue编译模板的时候就生成了
+      function createGetValueByPath(path) {
+          let paths = path.split('.')
+          return function getValueByPath(obj) {
+              let res = obj
+              let props;
+            //   console.log(paths.shift())
+              while(props = paths.shift()){ //从数组中删除第一个元素，并返回该元素的值
+                res = res[props]
+              }
+              return res
+          }
+      }
+    //   for循环
+      function getValueByPath(obj,path) {
+            let paths = path.split('.')
+            // let val = null
+            // for(let key of paths) {
+            //     // val = val[key] 相当于一层一层读取对象里面的值
+            //     val?val = val[key]: val = obj[key]
+            // }
+            // return val
+            return paths.reduce((pre,current) => {
+                // if(pre) {
+                //     pre = pre[current]
+                // }else {
+                //     pre = obj[current]
+                // }
+                // return pre
+                return pre?pre=pre[current]:pre = obj[current]
+            },null)
+        }
+      let o = {
+          a: {
+              b: {
+                  c: {
+                      d: '张三'
+                  }
+              }
+          }
+      }
+      // createGetValueByPath只调用了一次，获得了获取对象值的方法 优化--------------------
+      let getValueByPath = createGetValueByPath('a.b.c')
+      let res = getValueByPath(o)
+      console.log(res)
+      console.log(createGetValueByPath('a.b.c.d')(o))
+
+    </script>
+</body>
+</html>
