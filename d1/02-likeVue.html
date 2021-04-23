@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- 写模板 -->
+    <div id="root">
+      <div>
+          <p>{{name}}--{{message}}</p>
+      </div>
+      <p>{{name}}</p>
+      <p>{{message}}</p>
+    </div>
+    <script>
+      // console.log(root)
+      let bracketsReg = /\{\{(.+?)\}\}/g; //1.匹配除换行符 \n 之外的任何单字符  ?取消贪婪 g全局匹配
+
+        // 步骤拆解
+        // 1. 拿到模板
+        // 2. 拿到数据 （data）
+        // 3. 将数据与模板结合，得到的是 HTML 元素 ( DOM元素 )
+        // 4. 放到页面中
+
+        // 1
+        let tmpNode = document.querySelector('#root')
+        // 2
+        let data = {
+            name: '张三',
+            message: '你好'
+        }
+        // 3. 将数据放到模板中 (???)
+        // 解决嵌套深 一般都是使用 递归
+        // 在现在这个案例中 template 是 DOM
+        // 在真正的 Vue 源码中 是DOM -> 字符串模板 -> VNode -> 真实DOM
+        
+        function compiler(template, data) {
+            let childNodes = template.childNodes // 取出子节点
+            for(let i = 0;i<childNodes.length;i++) {
+                let type = childNodes[i].nodeType // 1 元素 2 属性 3 文本
+                if(type === 3) {
+                  let txt = childNodes[i].nodeValue // 该属性只有文本节点才有意义
+                  txt = txt.replace(bracketsReg, (_,g) => { // replace 正则匹配到一次 函数就会被调用一次
+                    // 正则匹配到花括号中的值 返回新的值
+                    let key = g.trim()
+                    let value = data[key]
+                    return value
+                  })
+                  childNodes[i].nodeValue = txt //替换文本值
+                }else if(type==1) {
+                  compiler(childNodes[i], data)
+                }
+            }
+        }
+        let generateNode = tmpNode.cloneNode(true) // 拷贝一份DOM元素，防止原始模板丢失
+
+        console.log(tmpNode)
+        compiler(generateNode, data)
+        console.log(generateNode)
+        // 此时是没有生成 新的template，所以这里看到的 是在页面中就更新的数据，因为DOM是引用类型
+        // 这样模板就没了，因为数据发生响应时，无法改变数据了
+
+        // 4. 将渲染好的 HTML 加到页面中
+        console.dir(root.parentNode)
+        root.parentNode.replaceChild(generateNode, root); // 替换元素
+
+        // 上面的思路有很大的问题：
+        // 1.Vue使用的 虚拟DOM
+        // 2.只考虑了 单属性({{name}}), 而 Vue中大量的使用层级 ({{child.name.firstName}})
+        // 3.代码没整合
+    </script>
+  </body>
+</html>
