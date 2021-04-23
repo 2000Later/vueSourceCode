@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="root">
+        <div>
+            <p>{{name}}--{{message}}</p>
+        </div>
+    </div>
+    <script>
+        let regBrackets = /\{\{(.+?)\}\}/g;
+
+        function complier (template, data) {
+            let childNodes = template.childNodes // 获取子节点
+            for(let i=0;i<childNodes.length;i++) {
+                let type = childNodes[i].nodeType // 获取节点类型
+                if(type === 3) {
+                    let txt = childNodes[i].nodeValue
+                    txt = txt.replace(regBrackets, (_,g) =>{
+                        let key = g.trim()
+                        let value = data[key]
+                        return value
+                    })
+                    childNodes[i].nodeValue = txt
+                }else if(type === 1) { // 如果是标签
+                    complier(childNodes[i],data)
+                }
+            }
+        }
+        function JGVue(options) {
+            // 习惯：内部的数据使用下划线 开头，只读数据使用 $ 开头
+            this._data = options.data;
+            this._el = options.el;
+
+            // 准备工作 (准备模板)
+            this._templateDOM = document.querySelector(this._el)
+            this._parent = this._templateDOM.parentNode;
+            this.render()
+        }
+        JGVue.prototype.render = function () {
+            this.complier()
+        }
+        /* 编译 将 模板与数据结合 得到 真正的DOM 元素*/ 
+        JGVue.prototype.complier = function () {
+            let realHTMLDOM = this._templateDOM.cloneNode(true)
+            complier(realHTMLDOM, this._data)
+            console.log(this._templateDOM)
+            console.log(realHTMLDOM)
+            this.update(realHTMLDOM)
+        }
+        /* 将 DOM 的元素 放到页面中  */
+        JGVue.prototype.update = function (real) {
+            this._parent.replaceChild(real, document.querySelector('#root'))
+        }
+        // 如何使用
+        let app = new JGVue({
+            el: '#root',
+            data: {
+                name: '张三',
+                message: '李四'
+            }
+        })
+        // 方法1
+        // function getValueByPath(obj, path) {
+        //     let paths = path.split('.')
+        //     let val = null
+        //     for(let value of paths) {
+        //         if(val) {
+        //             val = val[value]
+        //         }else {
+        //             val = obj[value]
+        //         }
+        //     }
+        //     return val
+        // }
+
+        // 方法2
+        // function getValueByPath(obj,path) {
+        //     let paths = path.split('.')
+        //     let res = obj;
+        //     let props;
+        //     while(props = paths.shift()) {
+        //         // console.log(obj['a']['b']['c'])
+        //         res = res[props]
+        //     }
+        //     return res
+        // }
+
+        // 方法3
+        function getValueByPath(obj,path) {
+            // let paths = 
+            return path.split('.').reduce((pre,current) => pre ? pre = pre[current]: pre=obj[current],null)
+        }
+        let obj = {
+            a: {
+                b: {
+                    c:{
+                        d: '1'
+                    }
+                }
+            }
+        }
+        console.log(getValueByPath(obj,'a.b.c.d'))
+    </script>
+</body>
+</html>
