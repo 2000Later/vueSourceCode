@@ -77,8 +77,9 @@
             let type = vnode.type
             if(type===1) { // 标签节点
                 let element = document.createElement(vnode.tag)
-                Object.keys(vnode.data).forEach((item,i) => {
-                    element.setAttribute(item,vnode.data[item])
+                Object.keys(vnode.data).forEach(key => {
+                    let arrtValue = vnode.data[key]
+                    element.setAttribute(key,arrtValue)
                 })
                 let childNodes = vnode.children
                 for(let i=0;i<childNodes.length;i++) {
@@ -89,8 +90,11 @@
                 return document.createTextNode(vnode.value)
             }
         }
+        // 在真正的Vue中也是使用递归 + 栈 数据类型
         const res = parseVnode(vnode)
         console.log(res)
+        let s = "1+2+3*(3+4)"
+        console.log(eval(s))
         // const vn = new VNode(node)
     </script>
 </body>
