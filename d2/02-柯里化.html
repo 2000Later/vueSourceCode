@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let tags = "div,p,img,ul,li".split(",");
+      function makeMap(keys) {
+        let set = {};
+        // 存在的标签映射为true
+        keys.forEach((item) => set[item] = true);
+        // let res = keys.reduce((pre,current) => {
+        //   pre[current] = true
+        //   return pre
+        // },{})
+        // console.log(res)
+        
+        // 根据属性名获取标签 如果没有则为false
+        return (tagName) => {
+          return !!set[tagName.toLowerCase()];
+        };
+      }
+      let isHTMLTag = makeMap(tags);
+      console.log(isHTMLTag("DIV"));
+    </script>
+  </body>
+</html>
