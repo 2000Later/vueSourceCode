@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root" class="r1">
+      <div class="c1">
+        <div>{{name}}</div>
+        <div>{{age}}</div>
+        <div>{{sex}}</div>
+      </div>
+      <ul>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+      </ul>
+    </div>
+    <script>
+      /* 由 HTML DOM -> VNode: 将这个函数当作complier 函数 */ 
+      function getVNode(node) {
+        let type = node.nodeType
+        let _vnode = null
+        if(type===1) {
+          let tag  = node.nodeName
+          let attr = node.attributes
+          let attrObj = {}
+          // 设置属性值
+          for(let {nodeName,nodeValue} of attr){
+            attrObj[nodeName] = nodeValue
+          }
+          // 创建虚拟DOM
+          _vnode = new VNode(tag,attrObj,type,undefined)
+          // 递归创建虚拟DOM
+          node.childNodes.forEach(item => _vnode.appendChild(getVNode(item)))
+        }else if(type===3) {
+          _vnode = new VNode(undefined,undefined,type,node.nodeValue)
+        }
+        return _vnode
+      }
+        // 解析虚拟DOM
+      function parseVnode(vnode) {
+        let type = vnode.type
+        if(type === 1) {
+          let node = document.createElement(vnode.tag)
+          let attr = vnode.data
+          // 设置属性值 
+          Object.keys(attr).forEach(key => node.setAttribute(key,attr[key]))
+          // 递归解析虚拟DOM
+          vnode.children.forEach(item => node.appendChild(parseVnode(item)))
+          return node
+        }else if(type===3) {
+          return document.createTextNode(vnode.value)
+        }
+      }
+      
+      // 虚拟DOM类
+      class VNode {
+        constructor(tag,data,type,value) {
+          this.tag = tag && tag.toLowerCase()
+          this.type = type
+          this.data = data
+          this.value = value
+          this.children = []
+        }
+        appendChild(vnode) {
+          this.children.push(vnode)
+        }
+      }
+      let kuohao = /\{\{(.+?)\}\}/g
+      /* 根据路径访问对象成员 */ 
+      function getValueByPath(obj,path){
+        let paths = path.split('.')
+        let res = obj
+        let props
+        while(props = paths.shift()) {
+          res = res[props]
+        }
+        return res
+      }
+      /* 将 带有 字符串变量的 VNode 与数据data结合,得到填充数据的 VNode: 模拟 AST -> VNode */
+      function combine(vnode,data) {
+        let {type,data:_data,tag,value,children} = vnode
+        let _vnode = null
+        if(type===3) { // 文本节点
+          // 对文本的处理
+          value = value.replace(kuohao,(_,g) => getValueByPath(data,g.trim()))
+          _vnode = new VNode(undefined,undefined,type,value)
+        }else if(type===1) { // 元素节点
+          _vnode = new VNode(tag,_data,type,undefined)
+          children.forEach(_subvnode => _vnode.appendChild(combine(_subvnode,data)))
+        }
+        return _vnode
+      }
+      // 模拟Vue实例
+      class JGVue {
+        constructor(options) {
+          this._data = options.data
+          this._template = document.querySelector(options.el)
+          this._parent = this._template.parentNode
+          this.mount() // 挂载
+        }
+        mount(){
+          // 提供一个render 方法：生成虚拟DOM
+          this.render = this.createRenderFn() // 创建render函数
+          this.mountComponent() 
+        }
+        mountComponent() {
+          // 执行 mountComponent() 函数
+          let mount = () => {
+            // update 将虚拟DOM渲染到页面上
+            this.update(this.render())
+          }
+          mount.call(this) // 本质上应该交给 watcher 来调用，...
+        }
+        /**
+         * 在真正的 Vue 中使用了二次提交的设计结构
+         * 1. 在页面中 的 DOM 和 虚拟DOM 是一一对应的关系
+         * 2. 先有 AST 和 数据生成VNode (新，render)
+         * 3. 将 旧的 Vnode 和 新的 VNode 比较 (diff)，更新 (update) 
+        */
+
+        // 生成 render 函数，目的是缓存 抽象语法树(使用虚拟DOM模拟)
+        createRenderFn() {
+          let ast = getVNode(this._template)
+          // Vue: 将 AST + data => VNode
+          return function render() {
+            // 将字符串变量Vnode 转换为 有数据 的VNode
+            return combine(ast,this._data)
+          }
+          // 此处: 带有字符串变量的 VNode + data => 含有数据的VNode
+        }
+        // 将虚拟 DOM 渲染到页面中：diff 算法
+        update(vnode) {
+          // 简化，直接生成HTML DOM replaceChild 到页面中
+          this._parent.replaceChild(parseVnode(vnode),document.querySelector('#root'))
+        }
+      }
+      let app = new JGVue({
+        el: '#root',
+        data: {
+          name: '张三',
+          age: '18',
+          sex: '男'
+        }
+      })
+    </script>
+  </body>
+</html>
