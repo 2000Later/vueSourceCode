@@ -99,8 +99,9 @@
       class JGVue {
         constructor(options) {
           this._data = options.data
-          this._template = document.querySelector(options.el)
-          this._parent = this._template.parentNode
+          let elm = document.querySelector(options.el)
+          this._template = elm
+          this._parent = elm.parentNode
           this.mount() // 挂载
         }
         mount(){
@@ -114,7 +115,9 @@
             // update 将虚拟DOM渲染到页面上
             this.update(this.render())
           }
-          mount.call(this) // 本质上应该交给 watcher 来调用，...
+          mount()
+          // 修改mount指向当前实例，但是箭头函数将作用域提升一级可忽略
+          // mount.call(this) // 本质上应该交给 watcher 来调用，...
         }
         /**
          * 在真正的 Vue 中使用了二次提交的设计结构
@@ -137,6 +140,8 @@
         update(vnode) {
           // 简化，直接生成HTML DOM replaceChild 到页面中
           this._parent.replaceChild(parseVnode(vnode),document.querySelector('#root'))
+          // diff算法写不了
+          // 每次会将页面中的 DOM 全部替换
         }
       }
       let app = new JGVue({
@@ -147,6 +152,7 @@
           sex: '男'
         }
       })
+      console.log(app)
     </script>
   </body>
 </html>
