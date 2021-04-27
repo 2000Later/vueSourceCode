@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    let obj = {}
+    obj.name = '张三'
+    // 等价于
+    Object.defineProperty(obj,'age',{
+      configurable: true,
+      enumerable: !true,
+      writable: true,
+      value: 19
+    })
+
+    // get和set上
+    // 响应式就表现在赋值和取值,附带的做一些处理
+    let _gender;
+    Object.defineProperty(obj,'gender',{
+      configurable: true,
+      enumerable: true,
+      get() {
+        return _gender
+      },
+      set(newValue) { // 设置obj对象的值 在赋值给_gender, obj.gender获取时也就是最新的值
+        console.log('设置新的值为:',newValue)
+        _gender = newValue
+      }
+    })
+
+    // 如果同时使用 get 和 set 需要一个中间变量存储真正的数据
+
+    // 问题: 这个 _gender 被暴露在全局作用域???? 如何解决???
+
+    // 在 Vue 使用 defineRective( target, key, value, enumerable )
+  </script>
+</body>
+</html>

@@ -111,3 +111,36 @@ render 的作用是将虚拟DOM 转换为 真正的 DOM 加到页面中
 - 一个项目运行的时候 模板是不会变的，就表示AST是不会变的 
 
 可以将代码进行优化，将虚拟 DOM 缓存起来，生成一个函数，函数只需要传入数据 就可以得到一个真正的DOM
+
+# 响应式原理
+
+- 我们在使用 Vue 时候，赋值属性获得属性都是直接使用的 Vue 实例
+- 我们在设计属性值的时候，页面的数据更新
+
+````js
+Object.defineProoerty(对象,属性名,{
+   configurable: false, // 是否可配置
+   writable: false, // 是否可写入
+   enumerable: false, // 是否可枚举
+   get() {},
+   set() {} 
+})
+````
+````js
+function defineReactive(target,key,value,enumerable) {
+   // 函数内部是一个局部作用域,value就在函数内使用的变量 ( 闭包 )
+   Object.defineProperty(target,key,{
+      configurable: true,
+      enumberable,
+      get() {
+         console.log(`读取o的 ${key} 属性`)
+         return value
+      },
+      set(newVal) {
+         console.log(`设置${key}新值为:${newVal}`)
+         value = newVal
+      }
+   })
+}
+````
+# 发布订阅模式
