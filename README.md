@@ -169,6 +169,6 @@ function defineReactive(target,key,value,enumerable) {
 1. 使用一个临时的函数名存储函数
 2. 重新定义原来的函数
 3. 定义扩展的功能
-4. 调用临时的那个函数
+4. 调用临时的那个函数 
 
 # 发布订阅模式
