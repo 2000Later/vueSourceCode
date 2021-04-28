@@ -171,4 +171,9 @@ function defineReactive(target,key,value,enumerable) {
 3. 定义扩展的功能
 4. 调用临时的那个函数 
 
+扩展数组的push 和 pop 如何处理?
+
+- 直接修改 prototype **不行**
+- 修改要进行响应式化的数组的原型 (__proto__)
+
 # 发布订阅模式

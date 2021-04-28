@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    let data = {
+      name: '张三',
+      age: 19,
+      course: [
+        {name: '语文'},
+        {name: '数学'},
+        {name: '物理'}
+      ]
+    } // 除了使用递归还可以使用队列( 深度有优先转换为广度优先 )
+    const ARRLY_METHOD = [
+      'push',
+      'pop',
+      'shift',
+      'unshift',
+      'reverse',
+      'sort',
+      'splice'
+    ]
+    // 思路, 原型继承: 修改原型链的结构
+    let array_methods = Object.create(Array.prototype)
+
+    ARRLY_METHOD.forEach(method => {
+      // 根据key获取Array原型的方法
+      array_methods[method] = function () {
+        console.log(`调用的是拦截的 ${method} 方法`)
+
+        // 将数组进行响应式化
+        for(let i = 0; i < arguments.length;i++) {
+          reactive(arguments[i])
+        }
+
+        // 将Array原型中部分方法 给 array_methods使用 并将返回值返回
+        return Array.prototype[method].apply(this, arguments)
+      }
+    })
+    function defineReactive(target,key,value,enumerable) {
+      if(typeof value === 'object' && value!==null && !Array.isArray(value)) {
+        reactive()
+      }else {
+        Object.defineProperty(target,key,{
+          configurable: true,
+          enumerable,
+          get() {
+            console.log(`获取${key}值: ${value}`)
+            return value
+          },
+          set(newVal) {
+            console.log(`设置${key}值:${newVal}`)
+            newVal = value
+          }
+        })
+      }
+    }
+    function reactive(o) {
+      let keys = Object.keys(o)
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys[i]
+        let value = o[key]
+        if(Array.isArray(value)) {
+          value.__proto__ = array_methods // 数组可以响应式了
+          for(let j = 0; j < value.length; j++) {
+            reactive(value[j])
+          }
+        }else {
+          defineReactive(o,key,value,true)
+        }
+      }
+    }
+    reactive(data)
+  </script>
+</body>
+</html>
