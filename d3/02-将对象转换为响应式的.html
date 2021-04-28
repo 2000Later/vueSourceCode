@@ -13,11 +13,6 @@
       age: 18,
       sex: '男'
     }
-    console.log({
-      name: '张三',
-      age: 18,
-      sex: '男'
-    })
     // 简化后的版本
     function defineReactive(target,key,value,enumerable) {
       // 函数内部是一个局部作用域,value就在函数内使用的变量 ( 闭包 )
@@ -42,7 +37,7 @@
       // console.log(o[keys[i]])
       defineReactive(o,keys[i],o[keys[i]],true)
     }
-    console.log(o)
+
   </script>
 </body>
 </html>

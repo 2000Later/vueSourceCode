@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    let o = {
+      name: '张三',
+      age: 18,
+      action: {
+        eat: '吃饭',
+        sleep: '睡觉',
+        play: '打球'
+      },
+      course: [
+        {name: '数学'},
+        {name: '英语'},
+        {name: '语文'}
+      ],
+
+    }
+    function defineReactive(target,key,value,enumerable) {
+      // console.log(target)
+      if(typeof value === 'object' && value!==null &&!Array.isArray(value)) {
+        console.log(value)
+        reactify(value)
+      }else {
+          Object.defineProperty(target,key,{
+            configurable: true,
+            enumerable,
+            get() {
+              console.log(`获取${key}: ${value}`)
+              return value
+            },
+            set(newVal) {
+              console.log(`设置${key}: ${newVal}`)
+              value = newVal
+            }
+          })
+        }
+    }
+    // 响应式化
+    function reactify(o) {
+      let keys = Object.keys(o)
+      for (let i = 0; i < keys.length; i++) {
+        // 获取键
+        let key = keys[i]
+        // 获取值
+        let value = o[key]
+        if(Array.isArray(value)) {
+          for (let j = 0; j < value.length; j++) {
+            // 响应式数组中的对象
+            reactify(value[j])
+          }
+        }else{
+          defineReactive(o,key,value,true)
+        } 
+      }
+    }
+    reactify(o)
+    // for (let i = 0; i < keys.length; i++) {
+    //   defineReactive(o,keys[i],o[keys[i]],true)
+    // }
+  </script>
+</body>
+</html>
