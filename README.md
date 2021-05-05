@@ -120,7 +120,7 @@ render 的作用是将虚拟DOM 转换为 真正的 DOM 加到页面中
 ````js
 Object.defineProoerty(对象,属性名,{
    configurable: false, // 是否可配置
-   writable: false, // 是否可写入
+   writable: false, // 是否可写入 // 此属性不能与set 和 get 同时存在
    enumerable: false, // 是否可枚举
    get() {},
    set() {} 
@@ -175,5 +175,8 @@ function defineReactive(target,key,value,enumerable) {
 
 - 直接修改 prototype **不行**
 - 修改要进行响应式化的数组的原型 (__proto__)
+
+已经将对象改成响应式的，但是如果直接给对象赋值，赋值另一个对象，那么就不是响应式的了，怎么办？
+需要在set中做响应式处理
 
 # 发布订阅模式

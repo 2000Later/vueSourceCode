@@ -1,0 +1,237 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: sueRimn
+ * @Date: 2021-04-29 23:29:22
+ * @LastEditors: sueRimn
+ * @LastEditTime: 2021-05-05 22:06:50
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root" class="ro">
+      <div class="dv">
+        <div>{{name}}</div>
+        <div>{{age}}</div>
+      </div>
+      <ul>
+        <li>{{interest.play}}</li>
+        <li>{{interest.sing}}</li>
+        <li>{{interest.eat}}</li>
+      </ul>
+    </div>
+    <script>
+      let root = document.querySelector("#root");
+      // let brackets = /\{\{(.+?)\}\}/g
+      // “[ ]”是范围描述符。
+      let brackets = /\{\{([\s\S]+?)\}\}/g;
+      function getValueByPath(o, path) {
+        let paths = path.split(".");
+        let res = o,
+          props;
+        while ((props = paths.shift(paths))) {
+          res = res[props];
+        }
+        return res;
+      }
+      /* 将 带有 字符串变量的 VNode 与数据data结合,得到填充数据的 VNode: 模拟 AST -> VNode */
+      function combine(vnode, data) {
+        let { tag, type, data: _data, value, children } = vnode;
+        let _vnode = null;
+        if (type === 3) {
+          // 替换值
+          value = value.replace(brackets, (_, g) => getValueByPath(data, g));
+          _vnode = new VNode(undefined, type, undefined, value);
+        } else if (type === 1) {
+          _vnode = new VNode(tag, type, _data, undefined);
+          children.forEach(
+            (subvnode) => void _vnode.appendChild(combine(subvnode, data))
+          );
+        }
+        return _vnode;
+      }
+      /**
+       * @name: 虚拟DOM的构造函数
+       * @param {string | undefined} tag 标签名
+       * @param {number} type 类型
+       * @param {object | undefined} data 数据
+       * @param {string | undefined} value 值
+       * @return {Object} 虚拟DOM实例
+       */
+      function VNode(tag, type, data, value) {
+        this.tag = tag && tag.toLowerCase();
+        this.type = type;
+        this.data = data;
+        this.value = value;
+        this.children = [];
+      }
+      // 原型的赋值不会提升作用域 需要先赋值在使用
+      VNode.prototype.appendChild = function (vnode) {
+        this.children.push(vnode);
+      };
+      // 获取虚拟DOM
+      function getVnode(node) {
+        let type = node.nodeType;
+        let _vnode = null;
+        if (type === 3) {
+          // 3 文本
+          _vnode = new VNode(undefined, type, undefined, node.nodeValue);
+        } else if (type === 1) {
+          // 1 标签
+          let tag = node.nodeName;
+          let attr = node.attributes;
+          let attrObj = {};
+          for (let { nodeName, nodeValue } of attr) {
+            attrObj[nodeName] = nodeValue;
+          }
+          _vnode = new VNode(tag, type, attrObj, undefined);
+          // 递归追加子节点
+          node.childNodes.forEach(
+            (item) => void _vnode.appendChild(getVnode(item))
+          );
+        }
+        return _vnode;
+      }
+
+      function parseVNode(vnode) {
+        let type = vnode.type;
+        let _node = null;
+        if (type === 3) {
+          // 文本
+          return document.createTextNode(vnode.value);
+        } else if (type === 1) {
+          // 标签
+          let { tag, data, children } = vnode;
+          _node = document.createElement(tag);
+          for (const key in data) {
+            _node.setAttribute(key, data[key]);
+          }
+          children.forEach(
+            (subvnode) => void _node.appendChild(parseVNode(subvnode))
+          );
+          return _node;
+        }
+      }
+      // console.log(parseVNode(getVnode(root)));
+      function JGVue(options) {
+        this._data = options.data;
+        let elm = document.querySelector(options.el);
+        this._template = elm;
+        this._parent = elm.parentNode;
+
+        reactive(this._data,this)  // 将 Vue 实例传入
+
+        this.mount(); // 挂载
+      }
+      JGVue.prototype.mount = function () {
+        this.render = this.createRenderFn();
+        this.mountComponent();
+      };
+      JGVue.prototype.mountComponent = function () {
+        let mount = function () {
+          this.update(this.render());
+        }.bind(this);
+        mount();
+      };
+      JGVue.prototype.createRenderFn = function () {
+        let ast = getVnode(this._template);
+        return function render() {
+          return combine(ast, this._data);
+        };
+      };
+      JGVue.prototype.update = function (vnode) {
+        let realDOM = parseVNode(vnode);
+        this._parent.replaceChild(realDOM, document.querySelector("#root"));
+      };
+      let data = {
+        name: "张三",
+        age: 18,
+        interest: {
+          play: "打篮球",
+          sing: "唱歌",
+          eat: "吃饭",
+        },
+        course: [{ name: "数学" }, { name: "英语" }, { name: "语文" }],
+      };
+      // 响应式化
+      const ARRAY_METHODS = [
+        "push",
+        "pop",
+        "shift",
+        "unshift",
+        "reverse",
+        "sort",
+        "splice",
+      ];
+      let array_methods = Object.create(Array.prototype)
+
+      ARRAY_METHODS.forEach(method => {
+        // 将Array原型中的部分方法给 array_methods 使用
+        array_methods[method] = function () {
+          console.log(`调用的是拦截的${method}方法`);
+        // 将数组进行响应式化
+          for(let i = 0; i < arguments.length;i++) {
+            reactive(arguments[i])
+          }
+          return Array.prototype[method].apply(this, arguments)
+        }
+      })
+      
+      function defineReactive(target, key, value, enumerable) {
+        // call 之后 此时 this 实例是 vm
+        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+          // 非数组类型的引用
+          reactive(value);
+        } else {
+          Object.defineProperty(target, key, {
+            configurable: true,
+            enumerable,
+            get() {
+              console.log(`获取${key}值：${value}`);
+              return value;
+            },
+            set: (newVal) => {
+              console.log(`设置${key}值：${value}`);
+              // reactive(newVal)
+              // this.mountComponent()
+              value = newVal
+              this.mountComponent()
+            }
+            // set(newVal) {
+            //   console.log(`设置${key}值：${value}`);
+            //   reactive(newVal);
+            //   value = newVal;
+            // },
+          });
+        }
+      }
+      function reactive(o, vm) {
+        let keys = Object.keys(o);
+        for (let i = 0; i < keys.length; i++) {
+          let key = keys[i];
+          let value = o[key];
+          if (Array.isArray(value)) {
+            for (let j = 0; j < value.length; j++) {
+              value.__proto__ = array_methods; // 数组中的部分方法响应式
+              reactive(value[j]);
+            }
+          } else {
+            defineReactive.call(vm, o, key, value, true);
+          }
+        }
+      }
+      reactive(data);
+      let vm = new JGVue({
+        el: "#root",
+        data,
+      });
+      console.log(vm)
+    </script>
+  </body>
+</html>

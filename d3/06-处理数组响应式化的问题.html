@@ -11,6 +11,10 @@
     let data = {
       name: '张三',
       age: 19,
+      interest: {
+        play: '打篮球',
+        sleep: '睡觉'
+      },
       course: [
         {name: '语文'},
         {name: '数学'},
@@ -41,11 +45,12 @@
 
         // 将Array原型中部分方法 给 array_methods使用 并将返回值返回
         return Array.prototype[method].apply(this, arguments)
+        // return Array.prototype[ method ].call( this, ...arguments ); // 类比
       }
     })
     function defineReactive(target,key,value,enumerable) {
       if(typeof value === 'object' && value!==null && !Array.isArray(value)) {
-        reactive()
+        reactive(value)
       }else {
         Object.defineProperty(target,key,{
           configurable: true,
@@ -56,7 +61,8 @@
           },
           set(newVal) {
             console.log(`设置${key}值:${newVal}`)
-            newVal = value
+            reactive(newVal)
+            value  = newVal
           }
         })
       }
