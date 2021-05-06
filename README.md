@@ -145,9 +145,18 @@ function defineReactive(target,key,value,enumerable) {
 ````
 处理多级问题
 ````js
-
+let o = {
+   list: [
+      {}
+   ],
+   a: [
+      {}
+   ],
+   b: {}
+}
 ````
 递归处理多级
+
 
 对于对象可以使用 递归来响应式化, 但是数组也需要响应式化
 
@@ -166,6 +175,7 @@ function defineReactive(target,key,value,enumerable) {
 2. 加入的元素也应该变成响应式的
 
 技巧: 如果函数已经定义, 但是需要扩展功能,一般的处理办法:
+
 1. 使用一个临时的函数名存储函数
 2. 重新定义原来的函数
 3. 定义扩展的功能
@@ -179,4 +189,34 @@ function defineReactive(target,key,value,enumerable) {
 已经将对象改成响应式的，但是如果直接给对象赋值，赋值另一个对象，那么就不是响应式的了，怎么办？
 需要在set中做响应式处理
 
+
+// 继承关系: arr -> Array.prototype -> Object.prototype -> ...
+// 继承关系: arr -> 改写的方法 -> Array.prototype -> Object.prototype -> ...
+
+
 # 发布订阅模式
+
+- 代理方法 (app.name,app._data.name)
+- 事件模型 (node: event模块)
+- vue 中的 Observer 与 Watcher 和 Dep
+
+代理方法,就是要将 app._data 中的成员 给 映射到app上
+
+由于需要在更新的时候,更新页面的内容
+所以 app._data访问的成员 与 app访问的成员应该是同一个成员
+
+由于 app._data 已经是响应式的对象,所以只需要让app访问的成员去访问 app._data的对应的成员就可以了.
+
+例如:
+````js
+app.name 转换为 app._data.name
+app.xxx 转换为 app._data.xxx
+````
+
+引入了一个函数proxy(target,src,prop), 将target的操作 映射到 src.prop上
+这里是因为当时没有`Proxy`语法(ES6)
+
+之前处理的reactive方法有许多缺点，数据中属性名不能重复，需要新的方法来处理
+
+提供一个 Observer 的方法，在方法中对 属性进行处理
+可以将这个方法封发到initData方法中
