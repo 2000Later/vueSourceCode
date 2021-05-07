@@ -220,3 +220,81 @@ app.xxx 转换为 app._data.xxx
 
 提供一个 Observer 的方法，在方法中对 属性进行处理
 可以将这个方法封发到initData方法中
+
+
+## 解释代理
+````js
+app._data.name
+/*
+   vue 设计，不希望访问 _ 开头的数据
+   vue 中有一个潜规则：
+   _开头的数据是私有数据
+   $ 开头的是只读数据
+*/ 
+app.name 
+// 将 对 _data.xxx 的访问 交给了实例
+
+// 重点：访问 app 的 xxx 就是在访问 app._data.xxx
+````
+假设：
+````js
+var o1 = {name: '张三'}
+Object.defineProperty(o2,'name',{
+   configurable: true,
+   enumerable: true,
+   get() {
+      return o1.name
+   }
+})
+````
+访问的 app 的 xxx 就是在访问 app._data.xxx
+
+````js
+Object.defineProperty(app,'name',{
+   configurable: true,
+   enumerable: true,
+   get() {
+      return app_data.name
+   },
+   set(newVal) {
+      app._data.name = newVal
+   }
+})
+````
+
+将属性的操作转换为参数
+````js
+function proxy(app,key) {
+   Object.defineProperty(app,key,{
+      configurable: true,
+      enumerable: true,
+      get() {
+         return app._data[key]
+      },
+      set(newVal) {
+         app._data[key] = newVal
+      }
+   })
+}
+````
+问题：
+
+在vue中不仅仅是只有data属性，properties 等等
+````js
+function proxy(app,prop,key) {
+   Object.defineProperty(app,key,{
+      configurable: true,
+      enumerable: true,
+      get() {
+         return app[prop][key]
+      },
+      set(newVal) {
+         app[prop][key] = newVal
+      }
+   })
+}
+// 如果将_data的成员映射到 实例上
+proxy(实例,'_data',属性名)
+// 如果要将_properties 的成员映射到实例上
+proxy(实例,'_data',属性名)
+````
