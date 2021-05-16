@@ -4,7 +4,7 @@ let ARRAY_METHOD = [
   "shift",
   "unshift",
   "reverse",
-  "sotr",
+  "sort",
   "splice",
 ];
 
