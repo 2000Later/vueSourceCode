@@ -3,7 +3,7 @@ let ARRAY_METHOD = [
   "pop",
   "shift",
   "unshift",
-  "resever",
+  "reverse",
   "sotr",
   "splice",
 ];
