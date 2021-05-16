@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root">
+      <div class="dv">
+        <div>{{name}}</div>
+        <div>{{age}}</div>
+      </div>
+      <ul>
+        <li>{{interest.play}}</li>
+        <li>{{interest.eat}}</li>
+        <li>{{interest.sing}}</li>
+      </ul>
+    </div>
+    <script src="./src/vnode.js"></script>
+    <script src="./src/complier.js"></script>
+    <script src="./src/initdata.js"></script>
+    <script src="./src/jgvue,.js"></script>
+    <script>
+      let data = {
+        name: "张三",
+        age: 18,
+        interest: {
+          play: "打游戏",
+          eat: "吃饭",
+          sing: "唱歌",
+        },
+        company: [
+          { name: "京东", animal: "狗" },
+          { name: "阿里", animal: "猫" },
+          { name: "百度", animal: "熊" },
+        ],
+      };
+      let jgVue = new JGVue({ el: "#root", data });
+    </script>
+  </body>
+</html>
