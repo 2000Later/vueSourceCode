@@ -16,6 +16,8 @@ function defineReactive(target,key,value,enumerable) {
   if(typeof value === 'object' && value!==null) {
     observe(value,this)
   }else {
+    let dep = new Dep();
+    
     Object.defineProperty(target,key,{
       configurable: true,
       enumerable,
@@ -29,8 +31,8 @@ function defineReactive(target,key,value,enumerable) {
         console.log(`set:${key}: ${newVal}`);
 
         value = newVal;
-        typeof this.mountComponent === 'function' && this.mountComponent();
-        // 数组获取不到JGVue实例，无法完成页面刷新
+        // 派发更新, 找到全局的 watcher, 调用 update
+        dep.notify();
       }
     })
   }

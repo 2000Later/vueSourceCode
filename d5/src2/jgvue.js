@@ -25,10 +25,11 @@ class JGVue {
     }
   }
   mountComponent() {
-    let mount = () => {
+    let mount = (a) => {
       this.update(this.render())
     };
-    mount();
+    // 这个Watcher就是全局的Watcher,任何一个位置都可以访问它了(简化的写法)
+    Dep.target = new Watcher(this, mount); // 在构造器中调用了mount
   }
   update(vnode) {
     let realDOM = parseVNode(vnode);
