@@ -409,3 +409,43 @@ watcher实例有个属性vm,表示的就是 当前的vue实例
 # 引入 Dep 对象
 
 该对象提供 依赖收集 (depend)的功能,和派发更新(notify)的功能
+
+在 notify 中去调用 watcher 的 update 方法
+
+# Watcher 与 Dep
+
+之前将 渲染 Watcher 方法全局作用域上，这样处理是有问题的
+
+   - vue项目中包含很多的组件,各个组件是**自治**的
+      - 那么watcher就可能会有多个
+   - 每一个watcher用于描述一个渲染行为 或 计算行为
+      - 子组件发生数据的更新,页面需要重新渲染(真正的Vue中是**局部**渲染)
+   - 例如 vue 中推荐使用 计算属性 代替复杂的 插值表达式.
+      - 计算属性是会伴随其使用的属性的变化而变化的
+      - `name: () => this.firstName + this.lastName`
+         - 计算属性 依赖与 属性firstName 和 属性lastName
+         - 只要被依赖的属性发生变化,那么就会促使计算属性**重新计算** ( Watcher )
+- 依赖收集与派发更新是怎么运行起来的
+
+**在访问的时候 就会进行收集, 在修改的时候就会更新, 那么收集什么就更新什么**
+
+所谓依赖收集 **实际上就是告诉当前的watcher什么属性被访问了**
+
+那么在watcher计算的时候或渲染页面的时候就会将这些收集到的属性进行更新.
+
+
+如何 将属性与当前watcher关联起来??
+
+- 在全局 准备一个targetStack(watcher栈,简单的理解为watcher “数组”, 把一个操作中需要使用的watcher都存储起来)
+- 在watcher调用get方法的时候,将当前watcher放到全局,在get之前结束的时候(之后), 将这个全局的watcher移除.提供pushTarget,      popTarget
+- 在每一个属性中 都有一个Dep对象
+
+我们在访问对象属性的时候(get),我们的渲染watcher 就在全局中.
+将属性与watcher关联,其实就是将当前渲染的watcher存储到属性相关的dep中.
+同时, 将dep也存储到 当前全局的watcher中.(互相引用的关系)
+- 属性引用了当前的渲染watcher**属性知道谁渲染它**
+- 当前渲染watcher引用了 访问的属性(Dep), **当前的Watcher知道渲染什么属性**
+
+dep有个方法,叫notify()
+内部就是将dep中的subs取出来,依次调用其update方法.
+subs 中存储的是**知道要渲染什么属性的watcher**
