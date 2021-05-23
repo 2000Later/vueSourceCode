@@ -449,3 +449,9 @@ watcher实例有个属性vm,表示的就是 当前的vue实例
 dep有个方法,叫notify()
 内部就是将dep中的subs取出来,依次调用其update方法.
 subs 中存储的是**知道要渲染什么属性的watcher**
+
+
+
+# 梳理 Watcher 与 Dep 与属性的关系
+
+假设: 有三个属性 name, age, sex. 页面将三个属性渲染出来
