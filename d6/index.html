@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root">
+      <div class="dv">
+        <div>{{user.name}}</div>
+        <div>{{user.age}}</div>
+        <div>{{user.sex}}</div>
+      </div>
+      <ul>
+        <li>{{car}}</li>
+        <li>2</li>
+        <li>3</li>
+      </ul>
+    </div>
+    <script src="./src/vnode.js"></script>
+    <script src="./src/compiler.js"></script>
+    <script src="./src/dep.js"></script>
+    <script src="./src/watcher.js"></script>
+    <script src="./src/initdata.js"></script>
+    <script src="./src/jgvue.js"></script>
+    <script>
+      let vm = new JGVue({
+        el: "#root",
+        data: {
+          user: {
+            name: "张三",
+            age: 18,
+            sex: "男",
+          },
+          father: '王二'
+        }
+      });
+    </script>
+  </body>
+</html>
