@@ -44,9 +44,9 @@ function getValueByPaths(o,path) {
   let res = o;
   let prop;
   while(prop = paths.shift()) {
-    res = res[prop]
+    res = res[prop] // 这里获取到了响应式的数据会触发get
   }
-  // console.log('读取', res);
+  console.log('读取', res);
   return res;
 }
 /**

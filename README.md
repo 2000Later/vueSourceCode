@@ -183,7 +183,7 @@ let o = {
 
 扩展数组的push 和 pop 如何处理?
 
-- 直接修改 prototype **不行**
+- 直接修改 prototype **不行** 因为所有的数组原型上的方法都会发生改变
 - 修改要进行响应式化的数组的原型 (__proto__)
 
 已经将对象改成响应式的，但是如果直接给对象赋值，赋值另一个对象，那么就不是响应式的了，怎么办？
@@ -455,3 +455,170 @@ subs 中存储的是**知道要渲染什么属性的watcher**
 # 梳理 Watcher 与 Dep 与属性的关系
 
 假设: 有三个属性 name, age, sex. 页面将三个属性渲染出来
+1. initData：将数据响应式化
+2. mount: 
+   1. 生成方法替换模板数据的方法
+   2. 调用更新组件的方法
+      1. 实例化watcher并将更新方法传入 -> 调用watcher实例中的get方法 -> 存储watcher到Dep.target -> 调用更新方法(改变this指向为vm并设置函数参数为vm) -> 更新模板数据(调用响应式数据的get方法) ->  将依赖收集(存储watcher到dep上)(存储dep到watcher上) -> 获取完数据并将模板替换后更新DOM -> 清空依赖
+
+# flow 的基本用法
+
+> https://flow.org/
+
+flow 本身 只是一个 静态的 语法 检查工具
+
+优势:
+
+1. 足够简单, 合适使用
+2. **可以为已有的项目, 进行优化**
+3. 为 ts 可以做一个铺垫
+
+准备使用: 
+
+用法: 
+
+1. 使用命令行工具
+   - 编写代码, 执行命令检查如果有问题 则提示, 没问题跳过 ( 和传统编译型语言 非常类似 )
+2. 使用 IDE 插件 ( 推荐 )
+   - 所见即所得
+  
+
+安装的内容
+
+1. flow-bin 它就是 flow 的静态类型检查工具 ( 主程序 ).
+2. 编译器 ( compiler ), 例如 flow-remove-types, 将类型的语法结构删除掉, 还原成 纯 js 的文件.
+
+
+```js
+// note
+// flow 是一个静态类型的检查工具
+// 给 js 增加了 类型
+
+// 在变量的名字后面 跟上 `:类型名`
+
+// 在使用的 需要在文件一开始的时候使用注释 
+// 使用这个注释是告诉 flow 工具 需要检查这个文件, 如果不使用这个注释 flow 工具就会忽略该文件
+
+// @flow
+
+/* @flow */
+```
+
+
+## flow 命令行工具的用法
+
+首先需要安装软件
+
+```sh
+$ npm i flow-bin flow-remove-types
+```
+
+编写代码
+
+1. 代码中添加 一个 注释 `// @flow ` 或者 `/* @flow */` 
+2. 在运行 flow 之前, 使用 `npx flow init` 初始化
+
+检查代码
+
+```sh
+$ npx flow
+```
+
+注意: `npx` 是 node 工具, 是为了使用项目文件夹下 node_modules 中的可执行程序的工具
+
+## flow-remove-types
+
+将代码转换为纯 js 的代码
+
+```sh
+npx flow-remove-types 源文件 -d 生成的文件
+```
+
+一般会将该命令配置 到 package.json 文件中
+
+
+## 使用 IDE 插件
+
+> 补充一下: 第一次打开 flow 代码的时候, VS CODE 会下滑红色波浪线
+
+推荐使用 flow language support 这个插件 ( VS Code 编辑器 )
+
+
+
+## Vue 源码说明
+
+.flowconfig 中
+
+module.name_mapper='^sfc/\(.*\)$' -> '<PROJECT_ROOT>/src/sfc/\1'
+
+的含义是将 代码中 from 后面导入模块使用的路径 `sfc/xxx/aa` 映射到 `项目根目录/src/sfc/xxx/aa`
+
+
+# rollup 的基本用法
+
+> https://www.rollupjs.com/
+
+注意:
+
+1. 版本, 生成文件的版本
+2. 使用模块化的语法是 ES6 语法 ( http://es6.ruanyifeng.com/#docs/module )
+
+使用 
+
+1. 安装 ( 局部 安装 )
+2. rollup 源文件的路径 --file 生成文件的路径 --format umd --name 生成的库的名字
+
+
+
+
+面试题:
+
+```js
+let params = 'a=b&c=d&e=f';
+
+// params.split( '&' ).reduce( (res, v) => {
+//   let kv = v.split( '=' );
+//   res[ kv[ 0 ] ] = kv[ 1 ];
+//   return res;
+// }, {} );
+
+let t = null;
+params.split( '&' ).reduce( ( res, v ) => ( t = v.split( '=' ), res[ t[ 0 ] ] = t[ 1 ], res ), {} );
+
+```
+
+# vue 源码解读
+
+1. 各个文件夹的作用
+2. Vue 的初始化流程
+
+## 各个文件夹的作用
+
+1. compiler 编译用的
+   - vue 使用**字符串**作为模板
+   - 在编译文件夹中存放对 模板字符串的 解析的算法, 抽象语法树, 优化等
+2. core 核心, vue 构造函数, 以及生命周期等方法的部分
+3. platforms 平台
+   - 针对 运行的 环境 ( 设备 ), 有不同的实现
+   - 也是 vue 的入口
+4. server 服务端, 主要是将 vue 用在服务端的处理代码 ( 略 )
+5. sfc, 单文件组件 ( 略 )
+6. shared 公共工具, 方法
+
+
+面试题：对数组去重
+
+```` js 
+let arr = [1,1,1,2,2,3,3,3]
+
+// 一般做法
+let newarr = []
+arr.forEach(v => newarr.indexOf(v) === -1 && newarr.push(v))
+
+// 利用 集合 来简化实现
+
+let _set = {}
+// set[v]不存在在进行赋值
+let _newarr = []
+arr.forEach( v => _set[v] || ( _set[v] = true, _newarr.push(v) ))
+````

@@ -5,7 +5,7 @@ class JGVue{
     this._template = elm;
     this._parent = elm.parentNode;
     this.initData(); // 将data 响应式化，并映射在实例中
-    this.mount();
+    this.mount(); 
   }
   initData() {
     observe(this._data,this);
@@ -20,7 +20,7 @@ class JGVue{
   }
   createRenderFn() {
     let ast = getVNode(this._template);
-    return function render() {
+    return function render() { // 缓存了一个函数返回结果(等到执行回调时触发)
       return combine(ast,this._data)
     }
   }
@@ -29,9 +29,8 @@ class JGVue{
       console.log('渲染了');
       this.update(this.render())
     }.bind(this)
-    
   // 这个 Watcher 就是全局的 Watcher, 在任何一个位置都可以访问他了 ( 简化的写法 )
-    new Watcher(this, mount);
+    new Watcher(this, mount); // 将更新函数传入watcher构造函数中(构造函数实例的时候触发更新方法)
   }
   update(vnode) {
     let realDOM = parseVNode(vnode)

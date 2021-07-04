@@ -17,7 +17,7 @@ class Watcher {
   }
   get() {
     pushTarget(this);
-    this.getter.call(this.vm, this.vm);
+    this.getter.call(this.vm, this.vm);  // 将调用渲染方法, 更新模板数据,触发响应化的数据执行get方法进行依赖收集
     popTarget();
   }
   /**
